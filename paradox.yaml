@@ -1,0 +1,126 @@
+esphome:
+  name: paradox
+  includes:
+    - paradox.h
+
+esp32:
+  board: lolin32
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "XXXXXXX"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Paradox Fallback Hotspot"
+    password: "XXXXXXXXX"
+
+captive_portal:
+
+time:
+  - platform: homeassistant
+    id: esptime
+
+uart:
+  id: uart_bus
+  tx_pin: 17
+  rx_pin: 16
+  baud_rate: 9600
+  # debug:
+  #   direction: BOTH
+  #   dummy_receiver: false
+  #   after:
+  #     delimiter: "\r"
+  #   sequence:
+  #     - lambda: UARTDebug::log_string(direction, bytes);
+  
+custom_component:
+- lambda: |-
+    auto paradox = new ParadoxUnit(id(uart_bus));
+    return {paradox};
+    
+sensor:
+  - platform: wifi_signal
+    name: "Paradox WiFi Signal Sensor"
+    update_interval: 60s
+
+binary_sensor:
+  - platform: status
+    name: "Paradox Status"
+
+  - platform: template
+    id: paradox_motion_palier
+    name: "paradox motion palier 1er"
+    device_class: motion
+    on_press:
+      then:
+        - delay: 10s
+        - lambda: |-
+            id(paradox_motion_palier).publish_state(false);
+  - platform: template
+    id: paradox_motion_salon
+    name: "paradox motion salon"
+    device_class: motion
+    on_press:
+      then:
+        - delay: 10s
+        - lambda: |-
+            id(paradox_motion_salon).publish_state(false);
+  - platform: template
+    id: paradox_motion_cuisine
+    name: "paradox motion cuisine"
+    device_class: motion
+    on_press:
+      then:
+        - delay: 10s
+        - lambda: |-
+            id(paradox_motion_cuisine).publish_state(false);
+  - platform: template
+    id: paradox_motion_ssol
+    name: "paradox motion sous/sol"
+    device_class: motion
+    on_press:
+      then:
+        - delay: 10s
+        - lambda: |-
+            id(paradox_motion_ssol).publish_state(false);
+  - platform: template
+    id: paradox_eau_buanderie
+    name: "paradox innondation buanderie"
+    device_class: moisture
+  - platform: template
+    id: paradox_eau_garage
+    name: "paradox innondation garage"
+    device_class: moisture
+  - platform: template
+    id: paradox_eau_chauffe_eau
+    name: "paradox innondation chauffe eau"
+    device_class: moisture
+  - platform: template
+    id: paradox_porte_garage
+    name: "paradox porte garage"
+    device_class: door
+  - platform: template
+    id: paradox_porte_maison
+    name: "paradox porte maison"
+    device_class: door
+  - platform: template
+    id: paradox_portail_garage
+    name: "paradox portail garage"
+    device_class: garage_door
+
+text_sensor:
+  - platform: template
+    name: "paradox alarm statut"
+    id: paradox_state_alarm
